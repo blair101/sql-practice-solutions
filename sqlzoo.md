@@ -3,9 +3,10 @@ Solutions to SQL exercises on [sqlzoo](https://sqlzoo.net/wiki/SQL_Tutorial) wit
 <!-- TOC -->
 
 - [SELECT basics](#select-basics)
-- [SELECT from WORLD Tutorial](#select-from-world-tutorial)
-- [SELECT within SELECT Tutorial](#select-within-select-tutorial)
-- [SELECT from Nobel Tutorial](#select-from-nobel-tutorial)
+- [SELECT names](#select-names)
+- [SELECT from World](#select-from-world)
+- [SELECT within SELECT](#select-within-select)
+- [SELECT from Nobel](#select-from-nobel)
 
 <!-- /TOC -->
 
@@ -29,7 +30,46 @@ Solutions to SQL exercises on [sqlzoo](https://sqlzoo.net/wiki/SQL_Tutorial) wit
     WHERE area BETWEEN 200000 AND 250000
     ```
 
-# SELECT from WORLD Tutorial
+# SELECT names
+
+1. Find the country that starts with Y.
+    ```
+    SELECT name FROM world
+    WHERE name LIKE 'Y%'
+    ```
+2. Find the country that ends with Y.
+    ```
+    SELECT name FROM world
+    WHERE name LIKE '%Y'
+    ```
+3. Find the countries that contain the letter x.
+    ```
+    SELECT name FROM world
+    WHERE name LIKE '%x%'
+    ```
+4. Find the countries that end with land.
+    ```
+    SELECT name FROM world
+    WHERE name LIKE '%land'
+    ```
+5. Find the countries that start with C and end with ia.
+    ```
+    SELECT name FROM world
+    WHERE name LIKE 'C%ia'
+    ```
+6. Find the country that has oo in the name.
+    ```
+    SELECT name FROM world
+    WHERE name LIKE '%oo%'
+    ```
+7. Find the countries that have three or more a in the name.
+    ```
+    SELECT name FROM world
+    WHERE LOWER(name) LIKE '%a%a%a%'
+    ```
+TBD
+
+# SELECT from World
 
 `world(name, continent, area, population, gdp)`
 
@@ -103,7 +143,7 @@ Solutions to SQL exercises on [sqlzoo](https://sqlzoo.net/wiki/SQL_Tutorial) wit
     AND name NOT LIKE '% %'
     ```
 
-# SELECT within SELECT Tutorial
+# SELECT within SELECT
 
 `world(name, continent, area, population, gdp)`
 
@@ -188,6 +228,6 @@ Solutions to SQL exercises on [sqlzoo](https://sqlzoo.net/wiki/SQL_Tutorial) wit
     WHERE y.continent = x.continent AND x.name <> y.name)
     ```
 
-# SELECT from Nobel Tutorial
+# SELECT from Nobel
 
 TBD
