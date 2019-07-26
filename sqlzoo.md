@@ -190,3 +190,4 @@ Solutions to SQL exercises on [sqlzoo](https://sqlzoo.net/wiki/SQL_Tutorial) wit
 
 # SELECT from Nobel Tutorial
 
+TBD
