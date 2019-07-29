@@ -472,6 +472,7 @@ Solutions to SQL exercises on [sqlzoo](https://sqlzoo.net/wiki/SQL_Tutorial) wit
     goal JOIN eteam ON teamid = id
     GROUP BY teamname
     ```
+    Note: `gtime` is unique for each goal.
 10. Show the stadium and the number of goals scored in each stadium.
     ```sql
     SELECT stadium, COUNT(gtime) FROM 
