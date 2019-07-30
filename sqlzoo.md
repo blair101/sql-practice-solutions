@@ -11,6 +11,8 @@ Solutions to SQL exercises on [sqlzoo](https://sqlzoo.net/wiki/SQL_Tutorial) wit
 - [JOIN](#join)
 - [More JOIN operations](#more-join-operations)
 - [Using Null](#using-null)
+- [Numeric Examples](#numeric-examples)
+- [Self JOIN](#self-join)
 
 <!-- /TOC -->
 
@@ -624,8 +626,200 @@ Solutions to SQL exercises on [sqlzoo](https://sqlzoo.net/wiki/SQL_Tutorial) wit
 2. List each teacher and their department, excluding teachers with no department and departments with no teacher.
 ```sql
 SELECT teacher.name, dept.name
-FROM teacher INNER JOIN dept
-ON (teacher.dept=dept.id)
+FROM teacher INNER JOIN dept ON teacher.dept = dept.id
+```
+3. Use a different `JOIN` so that all teachers are listed.
+    ```sql
+    SELECT teacher.name, dept.name FROM
+    teacher LEFT JOIN dept ON teacher.dept = dept.id
+    ```
+4. Use a different `JOIN` so that all departments are listed.
+    ```sql
+    SELECT teacher.name, dept.name FROM
+    teacher RIGHT JOIN dept ON teacher.dept = dept.id
+    ```
+5. Use `COALESCE` to print the mobile number. Use the number '07986 444 2266' if there is no number given. Show teacher name and mobile number or '07986 444 2266'
+    ```sql
+    SELECT name, COALESCE(mobile, '07986 444 2266') FROM teacher
+    ```
+    Note: `COALESCE` takes any number of arguments and returns the first value that is not null.
+6. Use the `COALESCE` function and a `LEFT JOIN` to print the teacher name and department name. Use the string 'None' where there is no department.
+    ```sql
+    SELECT teacher.name, COALESCE(dept.name, 'None') FROM
+    teacher LEFT JOIN dept ON teacher.dept = dept.id
+    ```
+7. Use COUNT to show the number of teachers and the number of mobile phones.
+    ```sql
+    SELECT COUNT(name), COUNT(mobile) FROM teacher
+    ```
+8. Use `COUNT` and `GROUP BY dept.name` to show each department and the number of staff. Use a `RIGHT JOIN` to ensure that the Engineering department is listed.
+    ```sql
+    SELECT dept.name, COUNT(teacher.name) FROM
+    teacher RIGHT JOIN dept ON teacher.dept = dept.id
+    GROUP BY dept.name
+    ```
+9. Use `CASE` to show the name of each teacher followed by 'Sci' if the teacher is in dept 1 or 2 and 'Art' otherwise.
+    ```sql
+    SELECT name, 
+    CASE WHEN dept = 1 OR dept = 2 THEN 'Sci' 
+    ELSE 'Art' 
+    END 
+    FROM teacher
+    ```
+10. Use `CASE` to show the name of each teacher followed by 'Sci' if the teacher is in dept 1 or 2, show 'Art' if the teacher's dept is 3 and 'None' otherwise.
+    ```sql
+    SELECT name, 
+    CASE WHEN dept = 1 OR dept = 2 THEN 'Sci'
+    WHEN dept = 3 THEN 'Art'
+    ELSE 'None'
+    END
+    FROM teacher
+    ```
+
+# Numeric Examples
+
+`nss(ukprn, institution, subject, level, question, A_STRONGLY_DISAGREE, A_DISAGREE, A_NEUTRAL, A_AGREE, A_STRONGLY_AGREE, A_NA, CI_MIN, score, CI_MAX, response, sample, aggregate)`
+
+The survey asks 22 questions, students can respond with STRONGLY DISAGREE, DISAGREE, NEUTRAL, AGREE or STRONGLY AGREE. The values in these columns represent PERCENTAGES of the total students who responded with that answer.
+
+The table `nss` has one row per institution, subject and question.
+
+1. Show the the percentage who STRONGLY AGREE for
+    * question 1
+    * at 'Edinburgh Napier University'
+    * studying '(8) Computer Science'
+    ```sql
+    SELECT A_STRONGLY_AGREE FROM nss
+    WHERE question = 'Q01'
+    AND institution = 'Edinburgh Napier University'
+    AND subject = '(8) Computer Science'
+    ```
+2. Show the institution and subject where the score is at least 100 for question 15.
+    ```sql
+    SELECT institution, subject FROM nss
+    WHERE question = 'Q15' AND score >= 100
+    ```
+3. Show the institution and score where the score for '(8) Computer Science' is less than 50 for question 'Q15'.
+    ```sql
+    SELECT institution, score FROM nss
+    WHERE subject = '(8) Computer Science' AND question = 'Q15' AND score < 50
+    ```
+4. Show the subject and total number of students who responded to question 22 for each of the subjects '(8) Computer Science' and '(H) Creative Arts and Design'.
+    ```sql
+    SELECT subject, SUM(response) FROM nss
+    WHERE question = 'Q22' AND subject IN ('(8) Computer Science', '(H) Creative Arts and Design')
+    GROUP BY subject
+    ```
+5. Show the subject and total number of students who `A_STRONGLY_AGREE` to question 22 for each of the subjects '(8) Computer Science' and '(H) Creative Arts and Design'.
+    ```sql
+    SELECT subject, SUM(A_STRONGLY_AGREE/100 * response) FROM nss
+    WHERE question = 'Q22' AND subject IN ('(8) Computer Science', '(H) Creative Arts and Design')
+    GROUP BY subject
+    ```
+6. Show the percentage of students who `A_STRONGLY_AGREE` to question 22 for the subject '(8) Computer Science' show the same figure for the subject '(H) Creative Arts and Design'.
+Use the `ROUND` function to show the percentage without decimal places.
+    ```sql
+    SELECT subject, ROUND(SUM(A_STRONGLY_AGREE/100 * response)/SUM(response)*100) FROM nss
+    WHERE question = 'Q22' AND subject IN ('(8) Computer Science', '(H) Creative Arts and Design')
+    GROUP BY subject
+    ```
+7. Show the average scores for question 'Q22' for each institution that include 'Manchester' in the name.
+    ```sql
+    SELECT institution, ROUND(SUM(score*response)/SUM(response)) FROM nss
+    WHERE question = 'Q22' AND institution LIKE '%Manchester%'
+    GROUP BY institution
+    ```
+    Note: Columns show up in `GROUP BY` if and only if they are outside the aggregate functions in `SELECT`.
+8. Show the institution, the total sample size and the number of computing students for institutions in Manchester for 'Q01'.
+    ```sql
+    SELECT institution, 
+    SUM(sample), 
+    SUM(CASE WHEN subject = '(8) Computer Science' THEN sample ELSE 0 END) 
+    FROM nss
+    WHERE question = 'Q01' AND institution LIKE '%Manchester%'
+    GROUP BY institution
+    ```
+
+# Self JOIN
+
+`stops(id, name)`
+
+`route(num, company, pos, stop)`
+
+1. How many stops are in the database.
+```sql
+SELECT COUNT(*) FROM stops
 ```
 
-TBD
+2. Find the id value for the stop 'Craiglockhart'
+    ```sql
+    SELECT id FROM stops
+    WHERE name = 'Craiglockhart'
+    ```
+3. Give the id and the name for the stops on the '4' 'LRT' service.
+```sql
+SELECT id, name FROM
+stops JOIN route ON id = stop
+WHERE num = '4' AND company = 'LRT'
+```
+4. The query shown gives the number of routes that visit either London Road (149) or Craiglockhart (53). Run the query and notice the two services that link these stops have a count of 2. Add a HAVING clause to restrict the output to these two routes.
+    ```sql
+    SELECT company, num, COUNT(*)
+    FROM route WHERE stop = 149 OR stop = 53
+    GROUP BY company, num
+    HAVING COUNT(*) = 2
+    ```
+5. Execute the self join shown and observe that b.stop gives all the places you can get to from Craiglockhart, without changing routes. Change the query so that it shows the services from Craiglockhart to London Road.
+    ```sql
+    SELECT a.company, a.num, a.stop, b.stop
+    FROM route a JOIN route b ON
+    (a.company = b.company AND a.num = b.num)
+    WHERE a.stop = 53 AND b.stop = (SELECT id FROM stops WHERE name = 'London Road')
+    ```
+6. The query shown is similar to the previous one, however by joining two copies of the stops table we can refer to stops by name rather than by number. Change the query so that the services between 'Craiglockhart' and 'London Road' are shown.
+    ```sql
+    SELECT a.company, a.num, stopa.name, stopb.name
+    FROM route a JOIN route b ON
+    (a.company = b.company AND a.num = b.num)
+    JOIN stops stopa ON (a.stop = stopa.id)
+    JOIN stops stopb ON (b.stop = stopb.id)
+    WHERE stopa.name = 'Craiglockhart' AND stopb.name = 'London Road'
+    ```
+7. Give a list of all the services which connect stops 115 and 137 ('Haymarket' and 'Leith').
+    ```sql
+    SELECT DISTINCT a.company, a.num FROM 
+    route a JOIN route b ON
+    a.company = b.company AND a.num = b.num
+    WHERE a.stop = 115 AND b.stop = 137
+    ```
+    Note: `DISTINCT` is necessary since we only display the services without the start stop and end stop, and each service would be counted twice, once from `a` to `b`, once from `b` to `a`.
+8. Give a list of the services which connect the stops 'Craiglockhart' and 'Tollcross'.
+    ```sql
+    SELECT DISTINCT a.company, a.num FROM 
+    route a JOIN route b ON
+    a.company = b.company AND a.num = b.num
+    WHERE a.stop = (SELECT id FROM stops WHERE name = 'Craiglockhart') AND b.stop = (SELECT id FROM stops WHERE name = 'Tollcross')
+    ```
+9. Give a distinct list of the stops which may be reached from 'Craiglockhart' by taking one bus, including 'Craiglockhart' itself, offered by the LRT company. Include the company and bus no. of the relevant services.
+    ```sql
+    SELECT stopb.name, b.company, b.num FROM 
+    route a JOIN route b ON a.company = b.company AND a.num = b.num
+    JOIN stops stopa ON stopa.id = a.stop
+    JOIN stops stopb ON stopb.id = b.stop
+    WHERE stopa.name = 'Craiglockhart' AND a.company = 'LRT'
+    ```
+10. Find the routes involving two buses that can go from Craiglockhart to Lochend. Show the bus no. and company for the first bus, the name of the stop for the transfer, and the bus no. and company for the second bus.
+    ```sql
+    SELECT anum, acom, (SELECT name FROM stops WHERE id = bstop), cnum, ccom FROM
+    -- buses from Craiglockhart
+    (SELECT a.num AS anum, a.company AS acom, b.stop AS bstop FROM 
+    route a JOIN route b ON a.company = b.company AND a.num = b.num
+    WHERE a.stop = 53) T1
+    JOIN
+    -- buses to Lochend
+    (SELECT c.num AS cnum, c.company AS ccom, c.stop AS cstop FROM 
+    route c JOIN route d ON c.company = d.company AND c.num = d.num
+    WHERE d.stop = (SELECT id FROM stops WHERE name = 'Lochend')) T2
+    -- join the two tables on common stops
+    ON bstop = cstop
+    ```
