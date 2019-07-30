@@ -10,6 +10,7 @@ Solutions to SQL exercises on [sqlzoo](https://sqlzoo.net/wiki/SQL_Tutorial) wit
 - [SUM and COUNT](#sum-and-count)
 - [JOIN](#join)
 - [More JOIN operations](#more-join-operations)
+- [Using Null](#using-null)
 
 <!-- /TOC -->
 
@@ -507,5 +508,124 @@ Solutions to SQL exercises on [sqlzoo](https://sqlzoo.net/wiki/SQL_Tutorial) wit
     Note: The `LEFT JOIN` is necessary since there may be matches where both teams score 0 goals, and this situation would not be reflected in the `goals` table. If the default `INNER JOIN` is used, these matches would not be captured in the resulting table.
 
 # More JOIN operations
+
+`movie(id, title, yr, director, budget, gross)`
+
+`actor(id, name)`
+
+`casting(movieid, actorid, ord)`
+
+1. List the films where the yr is 1962 [Show id, title].
+    ```sql
+    SELECT id, title FROM movie
+    WHERE yr = 1962
+    ```
+2. Give year of 'Citizen Kane'.
+    ```sql
+    SELECT yr FROM movie
+    WHERE title = 'Citizen Kane'
+    ```
+3. List all of the Star Trek movies, include the id, title and yr (all of these movies include the words Star Trek in the title). Order results by year.
+    ```sql
+    SELECT id, title, yr FROM movie
+    WHERE title LIKE '%Star Trek%'
+    ORDER BY yr
+    ```
+4. What id number does the actor 'Glenn Close' have?
+    ```sql
+    SELECT id FROM actor
+    WHERE name = 'Glenn Close'
+    ```
+5. What is the id of the film 'Casablanca'?
+    ```sql
+    SELECT id FROM movie
+    WHERE title = 'Casablanca'
+    ```
+6. Obtain the cast list for 'Casablanca'.
+    ```sql
+    SELECT name FROM 
+    actor JOIN casting ON id = actorid
+    WHERE movieid = 11768
+    ```
+7. Obtain the cast list for the film 'Alien'
+    ```sql
+    SELECT name FROM 
+    actor JOIN casting ON id = actorid
+    WHERE movieid = (SELECT id FROM movie WHERE title = 'Alien')
+    ```
+8. List the films in which 'Harrison Ford' has appeared.
+    ```sql
+    SELECT title FROM
+    movie JOIN casting ON id = movieid
+    WHERE actorid = (SELECT id FROM actor WHERE name = 'Harrison Ford')
+    ```
+9. List the films where 'Harrison Ford' has appeared - but not in the starring role. [Note: the ord field of casting gives the position of the actor. If ord=1 then this actor is in the starring role]
+    ```sql
+    SELECT title FROM
+    movie JOIN casting ON id = movieid
+    WHERE actorid = (SELECT id FROM actor WHERE name = 'Harrison Ford') AND ord != 1
+    ```
+10. List the films together with the leading star for all 1962 films.
+    ```sql
+    SELECT title, name FROM
+    movie JOIN casting ON movie.id = casting.movieid
+    JOIN actor ON actor.id = casting.actorid
+    WHERE ord = 1 AND yr = 1962
+    ```
+11. Which were the busiest years for 'John Travolta', show the year and the number of movies he made each year for any year in which he made more than 2 movies.
+    ```sql
+    SELECT yr, COUNT(id) FROM
+    movie JOIN casting ON id = movieid
+    WHERE actorid = (SELECT id FROM actor WHERE name = 'John Travolta')
+    GROUP BY yr
+    HAVING COUNT(id) > 2
+    ```
+12. List the film title and the leading actor for all of the films 'Julie Andrews' played in.
+    ```sql
+    SELECT title, name FROM
+    movie JOIN casting ON movie.id = casting.movieid
+    JOIN actor ON actor.id = casting.actorid
+    WHERE ord = 1 AND movieid IN (SELECT movieid FROM casting WHERE actorid = (SELECT id FROM actor WHERE name = 'Julie Andrews'))
+    ```
+13. Obtain a list, in alphabetical order, of actors who've had at least 30 starring roles.
+    ```sql
+    SELECT name FROM
+    actor JOIN casting ON id = actorid
+    GROUP BY name
+    HAVING SUM(actorid = id AND ord = 1) >= 30
+    ```
+14. List the films released in the year 1978 ordered by the number of actors in the cast (descending order), then by title.
+    ```sql
+    SELECT title, COUNT(actorid) FROM
+    movie JOIN casting ON id = movieid
+    WHERE yr = 1978
+    GROUP BY title
+    ORDER BY COUNT(actorid) DESC, title
+    ```
+15. List all the people who have worked with 'Art Garfunkel'.
+    ```sql
+    SELECT name FROM
+    casting JOIN actor ON actorid = id
+    WHERE movieid IN (SELECT movieid FROM casting WHERE actorid = (SELECT id FROM actor WHERE name = 'Art Garfunkel')) AND name != 'Art Garfunkel'
+    ```
+    Note: Remember to exclude 'Art Garfunkel' himself.
+
+# Using Null
+
+`teacher(id, dept, name, phone, mobile)`
+
+`dept(id, name)`
+
+1. List the teachers who have NULL for their department.
+    ```sql
+    SELECT name FROM teacher
+    WHERE dept IS NULL
+    ```
+2. List each teacher and their department, excluding teachers with no department and departments with no teacher.
+```sql
+SELECT teacher.name, dept.name
+FROM teacher INNER JOIN dept
+ON (teacher.dept=dept.id)
+```
 
 TBD
